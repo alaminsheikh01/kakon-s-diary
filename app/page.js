@@ -70,43 +70,26 @@ const Dashboard = () => {
         alert("Please set a month ID before saving.");
         return;
       }
-
+  
       const formattedMonthID = dayjs(monthID).format("MMMM-YYYY");
-
+  
+      // Calculate total remaining
       const totalRemaining =
         totalRevenue - data.reduce((acc, item) => acc + item.expense, 0);
-
+  
+      const updatedDocument = {
+        monthID: formattedMonthID,
+        totalRevenue,
+        totalRemaining,
+        rowList: data, // Directly save the current state data
+      };
+  
       const docRef = doc(db, "expenses", formattedMonthID);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const existingData = docSnap.data();
-        const updatedRowList = [...existingData.rowList, ...data];
-        const updatedTotalRemaining =
-          totalRevenue -
-          updatedRowList.reduce((acc, item) => acc + item.expense, 0);
-
-        const updatedDocument = {
-          monthID: formattedMonthID,
-          totalRevenue,
-          totalRemaining: updatedTotalRemaining,
-          rowList: updatedRowList,
-        };
-
-        await setDoc(docRef, updatedDocument);
-      } else {
-        const newDocument = {
-          monthID: formattedMonthID,
-          totalRevenue,
-          totalRemaining,
-          rowList: data,
-        };
-
-        await setDoc(docRef, newDocument);
-      }
-
+      await setDoc(docRef, updatedDocument); // Overwrite the document with new data
+  
       alert("Data saved successfully!");
-
+  
+      // Clear local state
       setData([]);
       setTotalRevenue(0);
       setMonthID("");
@@ -114,6 +97,7 @@ const Dashboard = () => {
       console.error("Error saving data:", error);
     }
   };
+  
 
   const deleteRow = (key) => {
     const updatedData = data.filter((row) => row.key !== key);
