@@ -1,10 +1,9 @@
 "use client";
-import { Table, Input, Button, Progress, DatePicker } from "antd";
-import { useState } from "react";
+import { Table, Input, Button, Progress, DatePicker, Spin } from "antd";
+import { useEffect, useState } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/src/config/firestore";
 import dayjs from "dayjs";
-import { Spin } from "antd";
 
 const Dashboard = () => {
   const [data, setData] = useState([]);
@@ -12,6 +11,10 @@ const Dashboard = () => {
   const [form, setForm] = useState({ date: "", expense: 0, reason: "" });
   const [monthID, setMonthID] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() =>{
+    document.title = "Kakon's Diary";
+  },[])
 
   const addRow = () => {
     if (!form.date || !form.expense || !form.reason) {
@@ -49,7 +52,6 @@ const Dashboard = () => {
         setData([]);
       }
     } catch (error) {
-      setLoading(false);
       console.error("Error loading data:", error);
     } finally {
       setLoading(false);
@@ -115,7 +117,7 @@ const Dashboard = () => {
 
   const deleteRow = (key) => {
     const updatedData = data.filter((row) => row.key !== key);
-    setData(updatedData); // Update the data state
+    setData(updatedData);
   };
 
   const columns = [
@@ -123,6 +125,7 @@ const Dashboard = () => {
       title: "Date",
       dataIndex: "date",
       key: "date",
+      width: 150, // Fixed width for the Date column
       render: (text) => (
         <span style={{ fontSize: "12px" }}>
           {new Date(text).toDateString()}
@@ -133,17 +136,20 @@ const Dashboard = () => {
       title: "Expense",
       dataIndex: "expense",
       key: "expense",
+      width: 100, // Fixed width for the Expense column
       render: (text) => <span style={{ fontSize: "12px" }}>{text}</span>,
     },
     {
       title: "Reason",
       dataIndex: "reason",
       key: "reason",
+      width: 200, // Fixed width for the Reason column
       render: (text) => <span style={{ fontSize: "12px" }}>{text}</span>,
     },
     {
       title: "Action",
       key: "action",
+      width: 100, // Fixed width for the Action column
       render: (_, record) => (
         <Button
           type="link"
@@ -159,9 +165,10 @@ const Dashboard = () => {
 
   return (
     <Spin spinning={loading} tip="Loading...">
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <div className="container max-w-screen-md bg-white shadow-md rounded-lg p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0 sm:space-x-4">
+      <div className="flex justify-center items-center min-h-screen bg-gray-100 ">
+        <div className="container max-w-screen-md bg-white shadow-md rounded-lg p-4 space-y-6">
+          {/* Month and Revenue Inputs */}
+          <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <div className="w-full sm:w-1/3">
               <h2 className="text-lg font-semibold mb-1">Current Month</h2>
               <Input
@@ -172,7 +179,6 @@ const Dashboard = () => {
                 className="w-full border border-gray-300 rounded px-2 py-1"
               />
             </div>
-
             <div className="w-full sm:w-1/3">
               <h3 className="text-lg font-semibold mb-1">Total Revenue:</h3>
               <Input
@@ -185,7 +191,6 @@ const Dashboard = () => {
                 className="w-full border border-gray-300 rounded px-2 py-1"
               />
             </div>
-
             <div className="w-full sm:w-1/3 sm:text-right">
               <h3 className="text-lg font-semibold mb-1">Remaining Amount:</h3>
               <Input
@@ -200,47 +205,58 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <DatePicker
-                placeholder="Select Date"
-                onChange={(date, dateString) =>
-                  setForm({ ...form, date: dateString })
-                }
-                className="w-full"
-              />
-              <Input
-                type="number"
-                placeholder="Expense"
-                value={form.expense}
-                onChange={(e) => setForm({ ...form, expense: e.target.value })}
-                className="w-full"
-              />
-              <Input
-                placeholder="Reason"
-                value={form.reason}
-                onChange={(e) => setForm({ ...form, reason: e.target.value })}
-                className="w-full"
-              />
-              <Button onClick={addRow} type="primary" className="w-full">
-                Add Row
-              </Button>
-            </div>
-            <div className="fixed bottom-4 left-4 right-4 flex justify-center z-10">
-              <Button
-                onClick={saveData}
-                type="primary"
-                disabled={!monthID || data.length === 0}
-                className="w-full max-w-sm"
-              >
-                Save Expenses
-              </Button>
-            </div>
+          {/* Form for Adding Rows */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <DatePicker
+              placeholder="Select Date"
+              onChange={(date, dateString) =>
+                setForm({ ...form, date: dateString })
+              }
+              className="w-full"
+            />
+            <Input
+              type="number"
+              placeholder="Expense"
+              value={form.expense}
+              onChange={(e) => setForm({ ...form, expense: e.target.value })}
+              className="w-full"
+            />
+            <Input
+              placeholder="Reason"
+              value={form.reason}
+              onChange={(e) => setForm({ ...form, reason: e.target.value })}
+              className="w-full"
+            />
+            <Button onClick={addRow} type="primary" className="w-full">
+              Add Row
+            </Button>
           </div>
 
-          <Table dataSource={data} columns={columns} pagination={false} />
+          {/* Save Button */}
+          <div className="fixed bottom-4 left-4 right-4 flex justify-center z-10">
+            <Button
+              size="small"
+              onClick={saveData}
+              type="primary"
+              disabled={!monthID || data.length === 0}
+              className="w-full"
+            >
+              Save Expenses
+            </Button>
+          </div>
 
-          <div className="mt-4">
+          {/* Table */}
+          <div className="mt-4 overflow-x-auto">
+            <Table
+              dataSource={data}
+              columns={columns}
+              pagination={false}
+              scroll={{ x: 600 }}
+            />
+          </div>
+
+          {/* Progress */}
+          <div className="mt-4 mb-6 sm:mb-0">
             <h2 className="text-lg font-semibold">Total Progress:</h2>
             <Progress
               percent={
