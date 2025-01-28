@@ -12,9 +12,9 @@ const Dashboard = () => {
   const [monthID, setMonthID] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() =>{
+  useEffect(() => {
     document.title = "Kakon's Diary";
-  },[])
+  }, []);
 
   const addRow = () => {
     if (!form.date || !form.expense || !form.reason) {
@@ -232,14 +232,13 @@ const Dashboard = () => {
             </Button>
           </div>
 
-          {/* Save Button */}
           <div className="fixed bottom-4 left-4 right-4 flex justify-center z-10">
             <Button
               size="small"
               onClick={saveData}
               type="primary"
               disabled={!monthID || data.length === 0}
-              className="w-full"
+              className="w-[90%] sm:w-[50%]"
             >
               Save Expenses
             </Button>
